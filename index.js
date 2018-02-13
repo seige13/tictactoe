@@ -1,9 +1,6 @@
-const readline = require('readline');
-const _ = require('underscore');
+let Board = require('./board');
 
-let PLAYERS = 2;
-let BOARD_SIZE = 3;
-const WIN_SEQUENCE = 3;
+const inquirer = require('inquirer');
 
 const MAX_PLAYERS = 26;
 const MIN_PLAYERS = 2;
@@ -14,77 +11,111 @@ const MIN_BOARD_SIZE = 3;
 const NOUGHT = 'O';
 const CROSS = 'X';
 
-let board = [
-  [], [], [],
-  [], [], [],
-  [], [], []
-];
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
+let PLAYERS = 2;
+let BOARD_SIZE = 3;
+let WIN_SEQUENCE = 3;
 
 /**
  * Asks the user questions
  */
-function promptUser() {
-  rl.question('How many users are playing the game? ', (usersAnswer) => {
-    if (Number.isInteger(parseInt(usersAnswer)) && (parseInt(usersAnswer) >= MIN_PLAYERS) && (parseInt(usersAnswer) <= MAX_PLAYERS)) {
-      PLAYERS = parseInt(usersAnswer);
+function newGame() {
 
-      rl.question('How big is the game? ', (answer) => {
-        if (Number.isInteger(parseInt(answer)) && (parseInt(answer) >= MIN_BOARD_SIZE) && (parseInt(answer) <= MAX_BOARD_SIZE)) {
-          BOARD_SIZE = parseInt(answer);
-          console.log(`Size of the game: ${BOARD_SIZE}`);
-        } else {
-          console.log(`Sorry ${answer} is not a valid board size.`);
+  let questions = [
+    {
+      type: 'input',
+      name: 'numberOfUsers',
+      message: "How many users are playing the game? ",
+      validate: function (value) {
+        if (Number.isInteger(parseInt(value)) && (parseInt(value) >= MIN_PLAYERS) && (parseInt(value) <= MAX_PLAYERS)) {
+          return true;
         }
 
-        rl.close();
-
-        if (isWinningPossible()) {
-          console.log(drawGameBoard(board, BOARD_SIZE));
-        } else {
-          console.log(`Sorry this game is impossible to win.`);
+        return `Please enter a valid number of users (${MIN_PLAYERS} - ${MAX_PLAYERS})`;
+      }
+    },
+    {
+      type: 'input',
+      name: 'boardSize',
+      message: "How big is the game? ",
+      validate: function (value) {
+        if (Number.isInteger(parseInt(value)) && (parseInt(value) >= MIN_BOARD_SIZE) && (parseInt(value) <= MAX_BOARD_SIZE)) {
+          return true;
         }
-      });
-    } else {
-      console.log(`Sorry ${usersAnswer} is not a valid number of players.`);
-      rl.close();
+
+        return `Please enter a valid board size (${MIN_BOARD_SIZE} - ${MAX_BOARD_SIZE})`;
+      }
+    },
+    {
+      type: 'input',
+      name: 'winSequence',
+      message: "How many consecutive symbols for a win? ",
+      validate: function (value) {
+        if (Number.isInteger(parseInt(value)) && (parseInt(value) >= MIN_BOARD_SIZE) && (parseInt(value) <= MAX_BOARD_SIZE)) {
+          return true;
+        }
+
+        return `Please enter a valid win sequence (${MIN_BOARD_SIZE} - ${MAX_BOARD_SIZE})`;
+      }
     }
+  ];
+
+  inquirer.prompt(questions).then(answers => {
+    BOARD_SIZE = parseInt(answers.boardSize);
+    PLAYERS = parseInt(answers.numberofUsers);
+    WIN_SEQUENCE = parseInt(answers.winSequence);
+
+    if (isWinningPossible()) {
+      console.log(printGameBoard(new Board(BOARD_SIZE)));
+    } else {
+      console.log(`Sorry this game is impossible to win.`);
+    }
+  }).catch(reason => {
+    console.log(reason);
   });
 }
 
 /**
  * Draws tic tac toe game board
  *
- * @param board
- * @param board_size
+ * @param {Board} board
  */
-function drawGameBoard(board, board_size) {
-  let horizontalPartition = createHorizontalPartition(board_size);
+function printGameBoard(board) {
+  let board_size = board.getBoardSize();
 
   for (let row = 0; row < board_size; ++row) {
     let rowString = '';
-    for (let col = 0; col < board_size; ++col) {
-      rowString = rowString.concat(printCell(board[row][col])); // print each of the cells
-      if (col !== board_size - 1) {
-        rowString = rowString.concat("|");   // print vertical partition
+    for (let col = 0; col <= board_size; ++col) {
+
+      if (col === 0) {
+        // first column number
+        rowString = rowString.concat(`${row + 1} `);
+        // top row
+        if (row === 0) {
+          console.log(createNumberedRow(board_size));
+        }
+      } else {
+        // print each of the cells
+        rowString = rowString.concat(printCell(board.board[row][col - 1]));
+        if (col !== board_size) {
+          // print vertical partition
+          rowString = rowString.concat("|");
+        }
       }
     }
+
     console.log(rowString);
     if (row !== board_size - 1) {
-      console.log(horizontalPartition); // print horizontal partition
+      // print horizontal partition
+      console.log(createHorizontalPartition(board_size));
     }
   }
   console.log('\n');
 }
 
 /**
- * Print a cell with the specified "content"
+ * Print a cell with the specified content
  *
- * @param content
+ * @param {string} content
  * @returns {string}
  */
 function printCell(content) {
@@ -99,13 +130,28 @@ function printCell(content) {
 }
 
 /**
+ * Creates the top row of the game board
+ *
+ * @param {int} board_size
+ * @return {string}
+ */
+function createNumberedRow(board_size) {
+  let rowString = '  ';
+  for (let i = 1; i <= board_size; i++) {
+    rowString = rowString.concat(` ${i}  `);
+  }
+
+  return rowString;
+}
+
+/**
  * Creates horizontal partition based on the size of the board
  *
- * @param width
+ * @param {int} width
  * @returns {string}
  */
 function createHorizontalPartition(width) {
-  let partition = '';
+  let partition = '  ';
   let col = '---+';
 
   for (let i = 0; i < width; i++) {
@@ -123,7 +169,33 @@ function createHorizontalPartition(width) {
  * Start the tic tac toe game
  */
 function initializeGame() {
-  promptUser();
+  console.log('Welcome to Tic Tac Toe for CS-570! \n');
+
+  inquirer
+    .prompt([
+      {
+        type: 'list',
+        name: 'game',
+        message: 'What do you want to do?',
+        choices: [
+          {
+            name: 'Start a new game',
+            value: 'new'
+          },
+          {
+            name: 'Resume a game',
+            value: 'resume'
+          }
+        ]
+      }
+    ])
+    .then(answers => {
+      if (answers.game === 'resume') {
+        resumeGame();
+      } else {
+        newGame();
+      }
+    });
 }
 
 /**
@@ -132,7 +204,14 @@ function initializeGame() {
  * @returns {boolean}
  */
 function isWinningPossible() {
-  return true;
+  return WIN_SEQUENCE <= BOARD_SIZE;
+}
+
+/**
+ * Resume game from file
+ */
+function resumeGame() {
+  console.log('Resuming game from file... \n');
 }
 
 //run the game

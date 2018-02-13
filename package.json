@@ -12,6 +12,6 @@
   "author": "Chris Boffa",
   "license": "ISC",
   "dependencies": {
-    "underscore": "^1.8.3"
+    "inquirer": "^5.1.0"
   }
 }

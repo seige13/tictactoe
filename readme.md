@@ -21,4 +21,10 @@ This will install an necessary dependencies for the application
 #### Authors
 
 * Chris Boffa
+* Michael Ramos
+* Vladimir Smagin
+
+##### External Libraries Used:
+
+* [Inquirer.js](https://github.com/SBoudrias/Inquirer.js/#inquirerjs)
  
