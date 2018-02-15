@@ -1,5 +1,7 @@
 let Board = require('./board');
 
+// let checkWin = require('./checkWin');
+
 const inquirer = require('inquirer');
 
 const MAX_PLAYERS = 26;
@@ -88,7 +90,13 @@ function printGameBoard(board) {
 
       if (col === 0) {
         // first column number
-        rowString = rowString.concat(`${row + 1} `);
+        // rowString = rowString.concat(`${row + 1} `);
+        if (row < 9)
+          rowString = rowString.concat(`${row + 1}  `);
+        else if (row < 99)
+          rowString = rowString.concat(`${row + 1} `);
+        else
+          rowString = rowString.concat(`${row + 1}`);
         // top row
         if (row === 0) {
           console.log(createNumberedRow(board_size));
@@ -136,9 +144,16 @@ function printCell(content) {
  * @return {string}
  */
 function createNumberedRow(board_size) {
-  let rowString = '  ';
+  // let rowString = '  ';
+  let rowString = '   ';
   for (let i = 1; i <= board_size; i++) {
-    rowString = rowString.concat(` ${i}  `);
+    // rowString = rowString.concat(` ${i}  `);
+    if (i < 10)
+      rowString = rowString.concat(` ${i}  `);
+    else if (i < 100)
+      rowString = rowString.concat(` ${i} `);
+    else
+      rowString = rowString.concat(` ${i}`);
   }
 
   return rowString;
@@ -151,7 +166,8 @@ function createNumberedRow(board_size) {
  * @returns {string}
  */
 function createHorizontalPartition(width) {
-  let partition = '  ';
+  // let partition = '  ';
+  let partition = '   ';
   let col = '---+';
 
   for (let i = 0; i < width; i++) {
@@ -217,3 +233,114 @@ function resumeGame() {
 //run the game
 initializeGame();
 
+
+
+// let board = new Board(3);
+// let board_size = board.getBoardSize();
+// console.log(board_size);
+
+// board.board[0][0] = 'A';
+// // board.board[1][1] = 'A';
+// board.board[2][2] = 'A';
+
+
+/**
+ * check if the user won the game after the last move
+ * 
+ * @param {string} player
+ * @param {int} seq - win sequence count
+ * @param {int} col - column number of last move
+ * @param {int} row - row number of last move
+ * 
+ * @returns {boolean} 
+ */
+function checkIfWin(player, seq, col, row) {
+  let count;
+  let boardSize = board.getBoardSize();
+
+  //check the row
+  count = 1; //set count to 1 for the last move
+  let left;
+  if (col+1-seq >= 0)  left = col+1-seq;
+  else  left = 0;
+  for (let i = col-1; i >= left; i--) {
+    if (board.board[row][i] === player)
+      if (++count === seq)
+        return true;
+    else
+      break;
+  }
+  let right;
+  if (col+seq <= boardSize-1) right = col+seq;
+  else  right = boardSize-1;
+  for (let i = col+1; i <= right; i++) {
+    if (board.board[row][i] === player)
+      if (++count === seq)
+        return true;
+      else
+        break;
+  }
+
+  //check the column
+  count = 1; //reset count to 1
+  let up;
+  if (row+1-seq >= 0)  up = row+1-seq;
+  else  up = 0;
+  for (let i = row-1; i >= up; i--) {
+    if (board.board[i][col] === player)
+      if (++count === seq)
+        return true;
+    else
+      break;
+  }
+  let bottom;
+  if (row+seq <= boardSize-1) bottom = row+seq;
+  else  bottom = boardSize-1;
+  for (let i = row+1; i <= bottom; i++) {
+    if (board.board[i][col] === player)
+      if (++count === seq)
+        return true;
+      else
+        break;
+  }
+
+  //check upper left to bottom right diagonal
+  count = 1; //reset count to 1
+  for (let i = col-1, j = row-1; i >= left && j >= up; i--, j--) {
+    if (board.board[i][j] === player)
+      if (++count === seq)
+        return true;
+      else
+        break;
+  }
+  for (let i = col+1, j = row+1; i <= right && j <= bottom; i++, j++) {
+    if (board.board[i][j] === player)
+    if (++count === seq)
+      return true;
+    else
+      break;
+  }
+
+  //check lower left to upper right diagonal
+  count = 1; //reset count to 1
+  for (let i = col-1, j = row+1; i >= left && j <= bottom; i--, j++) {
+    if (board.board[i][j] === player)
+      if (++count === seq)
+        return true;
+      else
+        break;
+  }
+  for (let i = col+1, j = row-1; i <= right && j >= up; i++, j--) {
+    if (board.board[i][j] === player)
+    if (++count === seq)
+      return true;
+    else
+      break;
+  }
+
+
+  return false;
+}
+
+// console.log(board);
+// console.log(checkWin(board,'A',3,1,1));
