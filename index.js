@@ -16,8 +16,6 @@ let PLAYERS = 2;
 let BOARD_SIZE = 3;
 let WIN_SEQUENCE = 3;
 
-let isGameWon = false;
-
 /**
  * Asks the user questions
  */
@@ -119,7 +117,7 @@ function printGameBoard(board) {
  * Play tic tac toe game
  */
 function playGame() {
-  let currentBoard = new Board(BOARD_SIZE);
+  let currentBoard = new Board(BOARD_SIZE, PLAYERS);
   console.log(printGameBoard(currentBoard));
   userTurn(0, currentBoard);
 }
@@ -136,72 +134,49 @@ function userTurn(turn, board) {
     let player = turn % PLAYERS;
     let playerCharacter = PLAYERS_CHAR.charAt(player);
 
-    inquirer
-      .prompt([
-        {
-          type: 'list',
-          name: 'game',
-          message: `Player ${player + 1} (${playerCharacter}): What would you like to do?`,
-          choices: [
-            {
-              name: 'Continue playing this game',
-              value: 'continue'
-            },
-            {
-              name: 'Quit and Save',
-              value: 'save'
-            },
-            {
-              name: 'Quit and Don\'t Save',
-              value: 'quit'
-            }
-          ]
+    let question = [
+      {
+        type: 'input',
+        name: 'usersMove',
+        message: `Player ${player + 1} (${playerCharacter}) - Please enter your next move (column row) or Q to quit:`,
+        validate: function (value) {
+          let regex = RegExp(`^[1-${+BOARD_SIZE}]\\s[1-${+BOARD_SIZE}]|Q`, 'i');
+          let found = regex.test(value);
+          if (!found) {
+            return `Please enter a valid move in the format: 1 ${BOARD_SIZE} or Q to quit`;
+          }
+
+          if (value.length === 1) {
+            return true;
+          }
+
+          if (!board.isValidMove(value.charAt(0) - 1, value.charAt(2) - 1)) {
+            return `Please enter a move that is not already taken`;
+          }
+
+          return true;
         }
-      ])
-      .then(answers => {
-        switch (answers.game) {
-          case 'save':
-            saveGame();
-            break;
-          case 'quit':
-            quitGame();
-            break;
-          default:
-            let question = [
-              {
-                type: 'input',
-                name: 'usersMove',
-                message: `Player ${player + 1} (${playerCharacter}): Where would you like to make a move? (column row) `,
-                validate: function (value) {
-                  let regex = `^[1-${+BOARD_SIZE}]\\s[1-${+BOARD_SIZE}]`;
-                  let found = value.match(regex);
-                  if (!found) {
-                    return `Please enter a valid move in the format: 1 ${BOARD_SIZE}`;
-                  }
+      }];
 
-                  if (!board.isValidMove(value.charAt(0) - 1, value.charAt(2) - 1)) {
-                    return `Please enter a move that is not already taken`;
-                  }
-
-                  return true;
-                }
-              }];
-
-            inquirer.prompt(question).then(answer => {
-              let row = answer.usersMove.charAt(0) - 1;
-              let col = answer.usersMove.charAt(2) - 1;
-              board.placeMove(row, col, playerCharacter);
-              isGameWon = board.isWinner(col, row, PLAYERS_CHAR, WIN_SEQUENCE);
-              console.log(`Is game won: ${isGameWon}`);
-              printGameBoard(board);
-              userTurn(turn + 1, board);
-            }).catch(reason => {
-              console.log(reason);
-            });
+    inquirer.prompt(question).then(answer => {
+      if (answer.usersMove.toLowerCase() !== 'q') {
+        let row = answer.usersMove.charAt(0) - 1;
+        let col = answer.usersMove.charAt(2) - 1;
+        board.placeMove(row, col, playerCharacter);
+        printGameBoard(board);
+        if (board.isWinner(playerCharacter, WIN_SEQUENCE)) {
+          console.log(`Congratulations Player ${player + 1}, you won the game!`);
+        } else {
+          userTurn(turn + 1, board);
         }
-      });
+      } else {
+        quitGame();
+      }
+    }).catch(reason => {
+      console.log(reason);
+    });
   } else {
-    console.log('There are no more valid moves!');
+    console.log('It\'s a tie. There are no more valid moves!');
   }
 }
 
