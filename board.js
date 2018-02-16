@@ -79,85 +79,93 @@ module.exports = class Board {
     let count;
     let boardSize = this.getBoardSize();
 
-    //check the row
-    count = 1; //set count to 1 for the last move
-    let left;
-    if (col + 1 - seq >= 0) left = col + 1 - seq;
-    else left = 0;
-    for (let i = col - 1; i >= left; i--) {
-      if (this.board[row][i] === player)
-        if (++count === seq)
-          return true;
-        else
-          break;
+  //check the row
+  count = 1; //set count to 1 for the last move
+  let left;
+  if (col+1-seq >= 0)  left = col+1-seq;
+  else  left = 0;
+  for (let i = col-1; i >= left; i--) {
+    if (board.board[row][i] === player) {
+      if (++count === seq)
+        return true;
     }
-    let right;
-    if (col + seq <= boardSize - 1) right = col + seq;
-    else right = boardSize - 1;
-    for (let i = col + 1; i <= right; i++) {
-      if (this.board[row][i] === player)
-        if (++count === seq)
-          return true;
-        else
-          break;
+    else
+       break;
+  }
+  let right;
+  if (col+seq <= boardSize-1) right = col+seq;
+  else  right = boardSize-1;
+  for (let i = col+1; i <= right; i++) {
+    if (board.board[row][i] === player) {
+      if (++count === seq)
+        return true;
     }
+    else
+      break;
+  }
 
-    //check the column
-    count = 1; //reset count to 1
-    let up;
-    if (row + 1 - seq >= 0) up = row + 1 - seq;
-    else up = 0;
-    for (let i = row - 1; i >= up; i--) {
-      if (this.board[i][col] === player)
-        if (++count === seq)
-          return true;
-        else
-          break;
+  //check the column
+  count = 1; //reset count to 1
+  let up;
+  if (row+1-seq >= 0)  up = row+1-seq;
+  else  up = 0;
+  for (let i = row-1; i >= up; i--) {
+    if (board.board[i][col] === player) {
+      if (++count === seq)
+        return true;
     }
-    let bottom;
-    if (row + seq <= boardSize - 1) bottom = row + seq;
-    else bottom = boardSize - 1;
-    for (let i = row + 1; i <= bottom; i++) {
-      if (this.board[i][col] === player)
-        if (++count === seq)
-          return true;
-        else
-          break;
+    else
+      break;
+  }
+  let bottom;
+  if (row+seq <= boardSize-1) bottom = row+seq;
+  else  bottom = boardSize-1;
+  for (let i = row+1; i <= bottom; i++) {
+    if (board.board[i][col] === player) {
+      if (++count === seq)
+        return true;
     }
+    else
+      break;
+  }
 
-    //check upper left to bottom right diagonal
-    count = 1; //reset count to 1
-    for (let i = col - 1, j = row - 1; i >= left && j >= up; i--, j--) {
-      if (this.board[i][j] === player)
-        if (++count === seq)
-          return true;
-        else
-          break;
+  //check upper left to bottom right diagonal
+  count = 1; //reset count to 1
+  for (let i = col-1, j = row-1; i >= left && j >= up; i--, j--) {
+    if (board.board[i][j] === player) {
+      if (++count === seq)
+        return true;
     }
-    for (let i = col + 1, j = row + 1; i <= right && j <= bottom; i++, j++) {
-      if (this.board[i][j] === player)
-        if (++count === seq)
-          return true;
-        else
-          break;
+    else
+      break;
+  }
+  for (let i = col+1, j = row+1; i <= right && j <= bottom; i++, j++) {
+    if (board.board[i][j] === player) {
+      if (++count === seq)
+        return true;
     }
+    else
+      break;
+  }
 
-    //check lower left to upper right diagonal
-    count = 1; //reset count to 1
-    for (let i = col - 1, j = row + 1; i >= left && j <= bottom; i--, j++) {
-      if (this.board[i][j] === player)
-        if (++count === seq)
-          return true;
-        else
-          break;
+  //check lower left to upper right diagonal
+  count = 1; //reset count to 1
+  for (let i = col-1, j = row+1; i >= left && j <= bottom; i--, j++) {
+    if (board.board[i][j] === player) {
+      if (++count === seq)
+        return true;
     }
-    for (let i = col + 1, j = row - 1; i <= right && j >= up; i++, j--) {
-      if (this.board[i][j] === player)
-        if (++count === seq)
-          return true;
-        else
-          break;
+    else
+      break;
+  }
+  for (let i = col+1, j = row-1; i <= right && j >= up; i++, j--) {
+    if (board.board[i][j] === player) {
+    if (++count === seq)
+      return true;
     }
+    else
+      break;
+  }
 
     return false;
   }
