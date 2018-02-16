@@ -40,7 +40,7 @@ let thisGame = {
   players: PLAYERS,
   win_seq: WIN_SEQUENCE,
   size: BOARD_SIZE,
-  turnCt: 6
+  turnCt: TURN
 };
 
 let json = JSON.stringify(thisGame);
