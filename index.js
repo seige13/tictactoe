@@ -14,6 +14,8 @@ let PLAYERS = 2;
 let BOARD_SIZE = 3;
 let WIN_SEQUENCE = 3;
 
+let isGameWon = false;
+
 /**
  * Asks the user questions
  */
@@ -121,6 +123,104 @@ function playGame() {
 }
 
 /**
+ * check if the user won the game after the last move
+ * 
+ * @param {string} player
+ * @param {int} seq - win sequence count
+ * @param {int} col - column number of last move
+ * @param {int} row - row number of last move
+ * 
+ * @returns {boolean} 
+ */
+function checkIfWin(player, seq, col, row) {
+  let count;
+  let boardSize = board.getBoardSize();
+
+  //check the row
+  count = 1; //set count to 1 for the last move
+  let left;
+  if (col+1-seq >= 0)  left = col+1-seq;
+  else  left = 0;
+  for (let i = col-1; i >= left; i--) {
+    if (board.board[row][i] === player)
+      if (++count === seq)
+        return true;
+    else
+      break;
+  }
+  let right;
+  if (col+seq <= boardSize-1) right = col+seq;
+  else  right = boardSize-1;
+  for (let i = col+1; i <= right; i++) {
+    if (board.board[row][i] === player)
+      if (++count === seq)
+        return true;
+      else
+        break;
+  }
+
+  //check the column
+  count = 1; //reset count to 1
+  let up;
+  if (row+1-seq >= 0)  up = row+1-seq;
+  else  up = 0;
+  for (let i = row-1; i >= up; i--) {
+    if (board.board[i][col] === player)
+      if (++count === seq)
+        return true;
+    else
+      break;
+  }
+  let bottom;
+  if (row+seq <= boardSize-1) bottom = row+seq;
+  else  bottom = boardSize-1;
+  for (let i = row+1; i <= bottom; i++) {
+    if (board.board[i][col] === player)
+      if (++count === seq)
+        return true;
+      else
+        break;
+  }
+
+  //check upper left to bottom right diagonal
+  count = 1; //reset count to 1
+  for (let i = col-1, j = row-1; i >= left && j >= up; i--, j--) {
+    if (board.board[i][j] === player)
+      if (++count === seq)
+        return true;
+      else
+        break;
+  }
+  for (let i = col+1, j = row+1; i <= right && j <= bottom; i++, j++) {
+    if (board.board[i][j] === player)
+    if (++count === seq)
+      return true;
+    else
+      break;
+  }
+
+  //check lower left to upper right diagonal
+  count = 1; //reset count to 1
+  for (let i = col-1, j = row+1; i >= left && j <= bottom; i--, j++) {
+    if (board.board[i][j] === player)
+      if (++count === seq)
+        return true;
+      else
+        break;
+  }
+  for (let i = col+1, j = row-1; i <= right && j >= up; i++, j--) {
+    if (board.board[i][j] === player)
+    if (++count === seq)
+      return true;
+    else
+      break;
+  }
+
+  return false;
+}
+
+
+/**
  * Recursive function for single user's turn
  *
  * @param {int} turn
@@ -155,6 +255,7 @@ function userTurn(turn, board) {
     inquirer.prompt(question).then(answer => {
       let row = answer.usersMove.charAt(0) - 1;
       let col = answer.usersMove.charAt(2) - 1;
+      isGameWon = checkIfWin(playerCharacter, WIN_SEQUENCE, col, row);
       board.placeMove(row, col, playerCharacter);
       printGameBoard(board);
       userTurn(turn + 1, board);
