@@ -8,8 +8,7 @@ const MIN_PLAYERS = 2;
 const MAX_BOARD_SIZE = 999;
 const MIN_BOARD_SIZE = 3;
 
-const NOUGHT = 'O';
-const CROSS = 'X';
+const PLAYERS_CHAR = 'XOABCDEFGHIJKLMNPQRSTUVWYZ';
 
 let PLAYERS = 2;
 let BOARD_SIZE = 3;
@@ -61,11 +60,11 @@ function newGame() {
 
   inquirer.prompt(questions).then(answers => {
     BOARD_SIZE = parseInt(answers.boardSize);
-    PLAYERS = parseInt(answers.numberofUsers);
+    PLAYERS = parseInt(answers.numberOfUsers);
     WIN_SEQUENCE = parseInt(answers.winSequence);
 
     if (isWinningPossible()) {
-      console.log(printGameBoard(new Board(BOARD_SIZE)));
+      playGame();
     } else {
       console.log(`Sorry this game is impossible to win.`);
     }
@@ -113,20 +112,69 @@ function printGameBoard(board) {
 }
 
 /**
+ * Play tic tac toe game
+ */
+function playGame() {
+  let currentBoard = new Board(BOARD_SIZE);
+  console.log(printGameBoard(currentBoard));
+  userTurn(0, currentBoard);
+}
+
+/**
+ * Recursive function for single user's turn
+ *
+ * @param {int} turn
+ * @param board
+ */
+function userTurn(turn, board) {
+
+  if (!board.isWinner()) {
+    let player = turn % PLAYERS;
+    let playerCharacter = PLAYERS_CHAR.charAt(player);
+
+    let question = [
+      {
+        type: 'input',
+        name: 'usersMove',
+        message: `Player ${player + 1} (${playerCharacter}): Where would you like to make a move? (column row) `,
+        validate: function (value) {
+          let regex = `^[1-${+BOARD_SIZE}]\\s[1-${+BOARD_SIZE}]`;
+          let found = value.match(regex);
+          if (!found) {
+            return `Please enter a valid move in the format: 1 ${BOARD_SIZE}`;
+          }
+
+          if (!board.isValidMove(value.charAt(0) - 1, value.charAt(2) - 1)) {
+            return `Please enter a move that is not already taken`;
+          }
+
+          return true;
+        }
+      }];
+
+    inquirer.prompt(question).then(answer => {
+      let row = answer.usersMove.charAt(0) - 1;
+      let col = answer.usersMove.charAt(2) - 1;
+      board.placeMove(row, col, playerCharacter);
+      printGameBoard(board);
+      userTurn(turn + 1, board);
+    }).catch(reason => {
+      console.log(reason);
+    });
+  } else {
+    console.log('There are no more valid moves!');
+  }
+
+}
+
+/**
  * Print a cell with the specified content
  *
  * @param {string} content
  * @returns {string}
  */
 function printCell(content) {
-  switch (content) {
-    case NOUGHT:
-      return " O ";
-    case CROSS:
-      return " X ";
-    default:
-      return "   ";
-  }
+  return content === '' ? '   ' : ` ${content} `;
 }
 
 /**
@@ -185,15 +233,24 @@ function initializeGame() {
           {
             name: 'Resume a game',
             value: 'resume'
+          },
+          {
+            name: 'Quit',
+            value: 'quit'
           }
         ]
       }
     ])
     .then(answers => {
-      if (answers.game === 'resume') {
-        resumeGame();
-      } else {
-        newGame();
+      switch (answers.game) {
+        case 'resume':
+          resumeGame();
+          break;
+        case 'quit':
+          quitGame();
+          break;
+        default:
+          newGame();
       }
     });
 }
@@ -212,6 +269,13 @@ function isWinningPossible() {
  */
 function resumeGame() {
   console.log('Resuming game from file... \n');
+}
+
+/**
+ * Quits current game
+ */
+function quitGame() {
+  console.log('Quiting game...');
 }
 
 //run the game
