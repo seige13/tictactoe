@@ -1,6 +1,8 @@
 let Board = require('./board');
 
 const inquirer = require('inquirer');
+const rl = require('readline');
+const fs = require('fs');
 
 const MAX_PLAYERS = 26;
 const MIN_PLAYERS = 2;
@@ -123,104 +125,6 @@ function playGame() {
 }
 
 /**
- * check if the user won the game after the last move
- * 
- * @param {string} player
- * @param {int} seq - win sequence count
- * @param {int} col - column number of last move
- * @param {int} row - row number of last move
- * 
- * @returns {boolean} 
- */
-function checkIfWin(player, seq, col, row) {
-  let count;
-  let boardSize = board.getBoardSize();
-
-  //check the row
-  count = 1; //set count to 1 for the last move
-  let left;
-  if (col+1-seq >= 0)  left = col+1-seq;
-  else  left = 0;
-  for (let i = col-1; i >= left; i--) {
-    if (board.board[row][i] === player)
-      if (++count === seq)
-        return true;
-    else
-      break;
-  }
-  let right;
-  if (col+seq <= boardSize-1) right = col+seq;
-  else  right = boardSize-1;
-  for (let i = col+1; i <= right; i++) {
-    if (board.board[row][i] === player)
-      if (++count === seq)
-        return true;
-      else
-        break;
-  }
-
-  //check the column
-  count = 1; //reset count to 1
-  let up;
-  if (row+1-seq >= 0)  up = row+1-seq;
-  else  up = 0;
-  for (let i = row-1; i >= up; i--) {
-    if (board.board[i][col] === player)
-      if (++count === seq)
-        return true;
-    else
-      break;
-  }
-  let bottom;
-  if (row+seq <= boardSize-1) bottom = row+seq;
-  else  bottom = boardSize-1;
-  for (let i = row+1; i <= bottom; i++) {
-    if (board.board[i][col] === player)
-      if (++count === seq)
-        return true;
-      else
-        break;
-  }
-
-  //check upper left to bottom right diagonal
-  count = 1; //reset count to 1
-  for (let i = col-1, j = row-1; i >= left && j >= up; i--, j--) {
-    if (board.board[i][j] === player)
-      if (++count === seq)
-        return true;
-      else
-        break;
-  }
-  for (let i = col+1, j = row+1; i <= right && j <= bottom; i++, j++) {
-    if (board.board[i][j] === player)
-    if (++count === seq)
-      return true;
-    else
-      break;
-  }
-
-  //check lower left to upper right diagonal
-  count = 1; //reset count to 1
-  for (let i = col-1, j = row+1; i >= left && j <= bottom; i--, j++) {
-    if (board.board[i][j] === player)
-      if (++count === seq)
-        return true;
-      else
-        break;
-  }
-  for (let i = col+1, j = row-1; i <= right && j >= up; i++, j--) {
-    if (board.board[i][j] === player)
-    if (++count === seq)
-      return true;
-    else
-      break;
-  }
-
-  return false;
-}
-
-
-/**
  * Recursive function for single user's turn
  *
  * @param {int} turn
@@ -228,44 +132,77 @@ function checkIfWin(player, seq, col, row) {
  */
 function userTurn(turn, board) {
 
-  if (!board.isWinner()) {
+  if (!board.isMovesLeft()) {
     let player = turn % PLAYERS;
     let playerCharacter = PLAYERS_CHAR.charAt(player);
 
-    let question = [
-      {
-        type: 'input',
-        name: 'usersMove',
-        message: `Player ${player + 1} (${playerCharacter}): Where would you like to make a move? (column row) `,
-        validate: function (value) {
-          let regex = `^[1-${+BOARD_SIZE}]\\s[1-${+BOARD_SIZE}]`;
-          let found = value.match(regex);
-          if (!found) {
-            return `Please enter a valid move in the format: 1 ${BOARD_SIZE}`;
-          }
-
-          if (!board.isValidMove(value.charAt(0) - 1, value.charAt(2) - 1)) {
-            return `Please enter a move that is not already taken`;
-          }
-
-          return true;
+    inquirer
+      .prompt([
+        {
+          type: 'list',
+          name: 'game',
+          message: `Player ${player + 1} (${playerCharacter}): What would you like to do?`,
+          choices: [
+            {
+              name: 'Continue playing this game',
+              value: 'continue'
+            },
+            {
+              name: 'Quit and Save',
+              value: 'save'
+            },
+            {
+              name: 'Quit and Don\'t Save',
+              value: 'quit'
+            }
+          ]
         }
-      }];
+      ])
+      .then(answers => {
+        switch (answers.game) {
+          case 'save':
+            saveGame();
+            break;
+          case 'quit':
+            quitGame();
+            break;
+          default:
+            let question = [
+              {
+                type: 'input',
+                name: 'usersMove',
+                message: `Player ${player + 1} (${playerCharacter}): Where would you like to make a move? (column row) `,
+                validate: function (value) {
+                  let regex = `^[1-${+BOARD_SIZE}]\\s[1-${+BOARD_SIZE}]`;
+                  let found = value.match(regex);
+                  if (!found) {
+                    return `Please enter a valid move in the format: 1 ${BOARD_SIZE}`;
+                  }
 
-    inquirer.prompt(question).then(answer => {
-      let row = answer.usersMove.charAt(0) - 1;
-      let col = answer.usersMove.charAt(2) - 1;
-      isGameWon = checkIfWin(playerCharacter, WIN_SEQUENCE, col, row);
-      board.placeMove(row, col, playerCharacter);
-      printGameBoard(board);
-      userTurn(turn + 1, board);
-    }).catch(reason => {
-      console.log(reason);
-    });
+                  if (!board.isValidMove(value.charAt(0) - 1, value.charAt(2) - 1)) {
+                    return `Please enter a move that is not already taken`;
+                  }
+
+                  return true;
+                }
+              }];
+
+            inquirer.prompt(question).then(answer => {
+              let row = answer.usersMove.charAt(0) - 1;
+              let col = answer.usersMove.charAt(2) - 1;
+              board.placeMove(row, col, playerCharacter);
+              isGameWon = board.isWinner(col, row, PLAYERS_CHAR, WIN_SEQUENCE);
+              console.log(`Is game won: ${isGameWon}`);
+              printGameBoard(board);
+              userTurn(turn + 1, board);
+            }).catch(reason => {
+              console.log(reason);
+            });
+        }
+      });
   } else {
     console.log('There are no more valid moves!');
   }
-
 }
 
 /**
@@ -375,18 +312,24 @@ function resumeGame() {
       if (err) {
         console.error(`An error occurred while opening ${fname}`, err);
       } else {
-        var game = JSON.parse(data);
+        let game = JSON.parse(data);
         //needs to be updated to rebuild the board and pick up the game
         console.log(game.players);
         console.log(game.win_seq);
         console.log(game.size);
-        var whoseTurn = (game.turnCt % game.players) + 1;
+        let whoseTurn = (game.turnCt % game.players) + 1;
         console.log(`It's player ${whoseTurn}'s turn`); //can be designed to show marking instead
       }
-    })
+    });
     rl.close()
   })
 }
+
+/**
+ * Saves the game
+ */
+function saveGame() {
+  console.log('Saving the game...');
 }
 
 /**
