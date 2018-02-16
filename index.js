@@ -269,6 +269,23 @@ function isWinningPossible() {
  */
 function resumeGame() {
   console.log('Resuming game from file... \n');
+  rl.question('Enter file name: ', (fname) => {
+    fs.readFile(path.join(__dirname, fname), 'utf-8', (err, data) => {
+      if (err) {
+        console.error(`An error occurred while opening ${fname}`, err);
+      } else {
+        var game = JSON.parse(data);
+        //needs to be updated to rebuild the board and pick up the game
+        console.log(game.players);
+        console.log(game.win_seq);
+        console.log(game.size);
+        var whoseTurn = (game.turnCt % game.players) + 1;
+        console.log(`It's player ${whoseTurn}'s turn`); //can be designed to show marking instead
+      }
+    })
+    rl.close()
+  })
+}
 }
 
 /**
@@ -280,4 +297,3 @@ function quitGame() {
 
 //run the game
 initializeGame();
-
