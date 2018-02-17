@@ -1,8 +1,8 @@
 let Board = require('./board');
 
 const inquirer = require('inquirer');
-const rl = require('readline');
 const fs = require('fs');
+const path = require('path');
 
 const MAX_PLAYERS = 26;
 const MIN_PLAYERS = 2;
@@ -115,11 +115,20 @@ function printGameBoard(board) {
 
 /**
  * Play tic tac toe game
+ *
+ * @param board
  */
-function playGame() {
-  let currentBoard = new Board(BOARD_SIZE, PLAYERS);
-  console.log(printGameBoard(currentBoard));
-  userTurn(0, currentBoard);
+function playGame(board) {
+  if (typeof board === "undefined") {
+    let currentBoard = new Board(BOARD_SIZE, PLAYERS);
+    console.log(printGameBoard(currentBoard));
+    userTurn(0, currentBoard);
+  } else {
+    let currentBoard = new Board(board.boardSize, board.numberOfPlayers, board.board, board.movesLeft);
+    console.log(printGameBoard(currentBoard));
+    let lastTurn = Math.pow(board.boardSize, 2) - board.movesLeft;
+    userTurn(lastTurn, currentBoard);
+  }
 }
 
 /**
@@ -170,7 +179,7 @@ function userTurn(turn, board) {
           userTurn(turn + 1, board);
         }
       } else {
-        quitGame();
+        quitGame(board);
       }
     }).catch(reason => {
       console.log(reason);
@@ -282,36 +291,103 @@ function isWinningPossible() {
  */
 function resumeGame() {
   console.log('Resuming game from file... \n');
-  rl.question('Enter file name: ', (fname) => {
-    fs.readFile(path.join(__dirname, fname), 'utf-8', (err, data) => {
+
+  let question = [
+    {
+      type: 'input',
+      name: 'file',
+      message: "From what file are you resuming the game from? Please enter a file name: ",
+      validate: function (value) {
+        return true;
+      }
+    }
+  ];
+
+  inquirer.prompt(question).then(answer => {
+    fs.readFile(path.join(__dirname, answer.file), 'utf-8', (err, data) => {
       if (err) {
-        console.error(`An error occurred while opening ${fname}`, err);
+        console.error(`An error occurred while opening ${answer.file}`, err);
       } else {
-        let game = JSON.parse(data);
-        //needs to be updated to rebuild the board and pick up the game
-        console.log(game.players);
-        console.log(game.win_seq);
-        console.log(game.size);
-        let whoseTurn = (game.turnCt % game.players) + 1;
-        console.log(`It's player ${whoseTurn}'s turn`); //can be designed to show marking instead
+        if (data.length) {
+          let board = JSON.parse(data);
+          WIN_SEQUENCE = board.winSequence;
+          playGame(board);
+        } else {
+          playGame();
+        }
       }
     });
-    rl.close()
-  })
+  }).catch(reason => console.log(reason));
 }
 
 /**
- * Saves the game
+ * Saves the game to a file specified by the user
+ *
+ * @param board
  */
-function saveGame() {
+function saveGame(board) {
   console.log('Saving the game...');
+
+  let question = [
+    {
+      type: 'input',
+      name: 'file',
+      message: "Where would you like to save the game? Please enter a file name: ",
+      validate: function (value) {
+        return true;
+      }
+    }
+  ];
+
+  board.winSequence = WIN_SEQUENCE;
+  board.lastMove = Math.pow(board.getBoardSize(), 2) - board.movesLeft;
+
+  inquirer.prompt(question).then(answer => {
+    fs.writeFileSync(path.join(__dirname, answer.file), JSON.stringify(board), function (err) {
+      if (err) {
+        return console.log(err);
+      }
+
+      console.log(`Thanks for playing! The game was saved at: ${path.join(__dirname, answer.file)}`);
+    });
+  }).catch(reason => console.log(reason));
 }
 
 /**
- * Quits current game
+ * Asks the user to quit or save current game
+ *
+ * @param board
  */
-function quitGame() {
-  console.log('Quiting game...');
+function quitGame(board) {
+  if (typeof board !== "undefined") {
+    inquirer
+      .prompt([
+        {
+          type: 'list',
+          name: 'quit',
+          message: 'Confirm: Are you sure you want to quit?',
+          choices: [
+            {
+              name: 'Quit and Save',
+              value: 'save'
+            },
+            {
+              name: 'Quit',
+              value: 'quit'
+            }
+          ]
+        }
+      ])
+      .then(answers => {
+        if (answers.game !== 'quit') {
+          saveGame(board);
+        } else {
+          console.log('Quiting the game. Thanks for playing!');
+        }
+      });
+  } else {
+    console.log('Quiting the game. Thanks for playing!');
+  }
 }
 
 //run the game
