@@ -167,7 +167,7 @@ function userTurn(turn, board) {
             let col = userInput[1];
 
             if (BOARD_SIZE >= 100) {
-              regex = RegExp(`^[1-${+BOARD_SIZE}]|[1-${row.charAt(0)}]\\s[1-${+BOARD_SIZE}]|Q`, 'i');
+              regex = RegExp(`^[0-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]\\s[0-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|Q`, 'i');
               row = row - 1;
               col = col - 1;
             } else if (BOARD_SIZE >= 10) {
@@ -200,8 +200,9 @@ function userTurn(turn, board) {
 
     inquirer.prompt(question).then(answer => {
       if (answer.usersMove.toLowerCase() !== 'q') {
-        let row = answer.usersMove.charAt(0) - 1;
-        let col = answer.usersMove.charAt(2) - 1;
+        let userInput = answer.usersMove.split(" ");
+        let row = userInput[0] - 1;
+        let col =  userInput[1] - 1;
         board.placeMove(row, col, playerCharacter);
         printGameBoard(board);
         if (board.isWinner(row, col, playerCharacter, WIN_SEQUENCE)) {
