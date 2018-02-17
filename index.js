@@ -154,9 +154,6 @@ function userTurn(turn, board) {
         name: 'usersMove',
         message: `Player ${player + 1} (${playerCharacter}) - Please enter your next move (column row) or Q to quit:`,
         validate: function (value) {
-          let boardLimit = 0;
-          let regex = '';
-
           if (value.length === 1 && value.toLowerCase() === 'q') {
             return true;
           }
@@ -166,28 +163,11 @@ function userTurn(turn, board) {
             let row = userInput[0];
             let col = userInput[1];
 
-            if (BOARD_SIZE >= 100) {
-              regex = RegExp(`^[0-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]\\s[0-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|Q`, 'i');
-              row = row - 1;
-              col = col - 1;
-            } else if (BOARD_SIZE >= 10) {
-              row = row - 1;
-              col = col - 1;
-              boardLimit = Math.floor((BOARD_SIZE / 10) % 10);
-              regex = RegExp(`^[1-9]|[1-${boardLimit}]\\s[1-9]|[1-${boardLimit}]|Q`, 'i');
-            } else {
-              regex = RegExp(`^[1-${+BOARD_SIZE}]\\s[1-${+BOARD_SIZE}]|Q`, 'i');
-              row = value.charAt(0) - 1;
-              col = value.charAt(2) - 1;
-            }
-
-            let found = regex.test(value);
-            if (!found) {
+            if ((row === 0 || row > BOARD_SIZE) || (col === 0 || col > BOARD_SIZE)) {
               return `Please enter a valid move in the format: 1 ${BOARD_SIZE} or Q to quit`;
             }
 
-            if (!board.isValidMove(row, col)) {
-              console.log(row, col);
+            if (!board.isValidMove(row - 1, col - 1)) {
               return `Please enter a move that is not already taken`;
             }
           } else {
