@@ -89,7 +89,12 @@ function printGameBoard(board) {
 
       if (col === 0) {
         // first column number
-        rowString = rowString.concat(`${row + 1} `);
+        if (row < 9)
+          rowString = rowString.concat(`${row + 1}  `);
+        else if (row < 99)
+          rowString = rowString.concat(`${row + 1} `);
+        else
+          rowString = rowString.concat(`${row + 1}`);
         // top row
         if (row === 0) {
           console.log(createNumberedRow(board_size));
@@ -208,7 +213,12 @@ function printCell(content) {
 function createNumberedRow(board_size) {
   let rowString = '  ';
   for (let i = 1; i <= board_size; i++) {
-    rowString = rowString.concat(` ${i}  `);
+    if (i < 10)
+      rowString = rowString.concat(`  ${i} `);
+    else if (i < 100)
+      rowString = rowString.concat(` ${i} `);
+    else
+      rowString = rowString.concat(` ${i}`);
   }
 
   return rowString;
@@ -221,7 +231,7 @@ function createNumberedRow(board_size) {
  * @returns {string}
  */
 function createHorizontalPartition(width) {
-  let partition = '  ';
+  let partition = '   ';
   let col = '---+';
 
   for (let i = 0; i < width; i++) {
