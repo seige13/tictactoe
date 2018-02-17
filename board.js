@@ -172,55 +172,6 @@ module.exports = class Board {
     return false;
   }
 
-  // /**
-  //  * Checks if there is a winner in the current board
-  //  *
-  //  * @param {string} player
-  //  * @param {int} winSequence
-  //  * @return {boolean}
-  //  */
-  // isWinner(player, winSequence) {
-  //   let isWinner = false;
-  //   let boardSize = this.getBoardSize();
-  //   let turns = Math.pow(this.boardSize, 2) - this.movesLeft;
-
-  //   // Game cannot be won yet since there aren't enough turns
-  //   if (turns >= (winSequence * this.numberOfPlayers) - 1) {
-  //     // @TODO Diagonal check
-  //     let diagonalArray = this.board.map((value, index) => value[0 + index]);
-  //     if (this.isWinnerInArray(diagonalArray, player, winSequence)) {
-  //       return true;
-  //     }
-
-  //     let reverseDiagonalArray = this.board.map((value, index) => value[boardSize - 1 - index]);
-  //     if (this.isWinnerInArray(reverseDiagonalArray, player, winSequence)) {
-  //       return true;
-  //     }
-
-  //     // rows and columns
-  //     for (let i = 0; i <= boardSize - 1; i++) {
-  //       let currentRow = this.board[i];
-  //       let currentColumn = this.board.map(value => value[i]);
-
-  //       // row
-  //       if (currentRow.indexOf(player) > -1) {
-  //         if (this.isWinnerInArray(currentRow, player, winSequence)) {
-  //           return true;
-  //         }
-  //       }
-
-  //       // column
-  //       if (currentColumn.indexOf(player) > -1) {
-  //         if (this.isWinnerInArray(currentColumn, player, winSequence)) {
-  //           return true;
-  //         }
-  //       }
-  //     }
-  //     return isWinner;
-  //   }
-
-  //   return isWinner;
-  // }
 
   /**
    * Checks if there are any moves left to be made
