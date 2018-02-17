@@ -134,7 +134,7 @@ module.exports = class Board {
     //check upper left to bottom right diagonal
     count = 1; //reset count to 1
     for (let i = col - 1, j = row - 1; i >= left && j >= up; i--, j--) {
-      if (this.board[i][j] === player) {
+      if (this.board[j][i] === player) {
         if (++count === seq)
           return true;
       }
@@ -142,7 +142,7 @@ module.exports = class Board {
         break;
     }
     for (let i = col + 1, j = row + 1; i <= right && j <= bottom; i++, j++) {
-      if (this.board[i][j] === player) {
+      if (this.board[j][i] === player) {
         if (++count === seq)
           return true;
       }
@@ -153,7 +153,7 @@ module.exports = class Board {
     //check lower left to upper right diagonal
     count = 1; //reset count to 1
     for (let i = col - 1, j = row + 1; i >= left && j <= bottom; i--, j++) {
-      if (this.board[i][j] === player) {
+      if (this.board[j][i] === player) {
         if (++count === seq)
           return true;
       }
@@ -161,7 +161,7 @@ module.exports = class Board {
         break;
     }
     for (let i = col + 1, j = row - 1; i <= right && j >= up; i++, j--) {
-      if (this.board[i][j] === player) {
+      if (this.board[j][i] === player) {
         if (++count === seq)
           return true;
       }
