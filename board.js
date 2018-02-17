@@ -182,31 +182,4 @@ module.exports = class Board {
     return this.movesLeft === 0;
   }
 
-  /**
-   * Checks if player character exists in array with winSequence number of times
-   *
-   * @param currentArray
-   * @param player
-   * @param winSequence
-   * @return {boolean}
-   */
-  isWinnerInArray(currentArray, player, winSequence) {
-    let consecutiveMoves = 1;
-    let firstIndex = currentArray.indexOf(player) > 0 ? currentArray.indexOf(player) : 1;
-
-    for (let j = firstIndex; j <= this.getBoardSize() - 1; j++) {
-      if (currentArray[j] === player && currentArray[j] === currentArray[j - 1]) {
-        consecutiveMoves++;
-
-        if (consecutiveMoves === winSequence) {
-          return true;
-        }
-      } else {
-        consecutiveMoves = 1;
-      }
-    }
-
-    return false;
-  }
-
 };
