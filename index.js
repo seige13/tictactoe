@@ -164,7 +164,7 @@ function userTurn(turn, board) {
         let col = answer.usersMove.charAt(2) - 1;
         board.placeMove(row, col, playerCharacter);
         printGameBoard(board);
-        if (board.isWinner(playerCharacter, WIN_SEQUENCE)) {
+        if (board.isWinner(row, col, playerCharacter, WIN_SEQUENCE)) {
           console.log(`Congratulations Player ${player + 1}, you won the game!`);
         } else {
           userTurn(turn + 1, board);

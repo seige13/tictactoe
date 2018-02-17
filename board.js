@@ -67,55 +67,111 @@ module.exports = class Board {
     this.movesLeft--;
   }
 
+
   /**
-   * Checks if there is a winner in the current board
+   * Checks if there is a winner
    *
-   * @param {string} player
-   * @param {int} winSequence
+   * @param col
+   * @param row
+   * @param player
+   * @param seq
    * @return {boolean}
    */
-  isWinner(player, winSequence) {
-    let isWinner = false;
+  isWinner(row, col, player, seq) {
+    let count;
     let boardSize = this.getBoardSize();
-    let turns = Math.pow(this.boardSize, 2) - this.movesLeft;
 
-    // Game cannot be won yet since there aren't enough turns
-    if (turns >= (winSequence * this.numberOfPlayers) - 1) {
-      // @TODO Diagonal check
-      let diagonalArray = this.board.map((value, index) => value[0 + index]);
-      if (this.isWinnerInArray(diagonalArray, player, winSequence)) {
-        return true;
+    //check the row
+    count = 1; //set count to 1 for the last move
+    let left;
+    if (col + 1 - seq >= 0) left = col + 1 - seq;
+    else left = 0;
+    for (let i = col - 1; i >= left; i--) {
+      if (this.board[row][i] === player) {
+        if (++count === seq)
+          return true;
       }
-
-      let reverseDiagonalArray = this.board.map((value, index) => value[boardSize - 1 - index]);
-      if (this.isWinnerInArray(reverseDiagonalArray, player, winSequence)) {
-        return true;
+      else
+        break;
+    }
+    let right;
+    if (col + seq <= boardSize - 1) right = col + seq;
+    else right = boardSize - 1;
+    for (let i = col + 1; i <= right; i++) {
+      if (this.board[row][i] === player) {
+        if (++count === seq)
+          return true;
       }
-
-      // rows and columns
-      for (let i = 0; i <= boardSize - 1; i++) {
-        let currentRow = this.board[i];
-        let currentColumn = this.board.map(value => value[i]);
-
-        // row
-        if (currentRow.indexOf(player) > -1) {
-          if (this.isWinnerInArray(currentRow, player, winSequence)) {
-            return true;
-          }
-        }
-
-        // column
-        if (currentColumn.indexOf(player) > -1) {
-          if (this.isWinnerInArray(currentColumn, player, winSequence)) {
-            return true;
-          }
-        }
-      }
-      return isWinner;
+      else
+        break;
     }
 
-    return isWinner;
+    //check the column
+    count = 1; //reset count to 1
+    let up;
+    if (row + 1 - seq >= 0) up = row + 1 - seq;
+    else up = 0;
+    for (let i = row - 1; i >= up; i--) {
+      if (this.board[i][col] === player) {
+        if (++count === seq)
+          return true;
+      }
+      else
+        break;
+    }
+    let bottom;
+    if (row + seq <= boardSize - 1) bottom = row + seq;
+    else bottom = boardSize - 1;
+    for (let i = row + 1; i <= bottom; i++) {
+      if (this.board[i][col] === player) {
+        if (++count === seq)
+          return true;
+      }
+      else
+        break;
+    }
+
+    //check upper left to bottom right diagonal
+    count = 1; //reset count to 1
+    for (let i = col - 1, j = row - 1; i >= left && j >= up; i--, j--) {
+      if (this.board[j][i] === player) {
+        if (++count === seq)
+          return true;
+      }
+      else
+        break;
+    }
+    for (let i = col + 1, j = row + 1; i <= right && j <= bottom; i++, j++) {
+      if (this.board[j][i] === player) {
+        if (++count === seq)
+          return true;
+      }
+      else
+        break;
+    }
+
+    //check lower left to upper right diagonal
+    count = 1; //reset count to 1
+    for (let i = col - 1, j = row + 1; i >= left && j <= bottom; i--, j++) {
+      if (this.board[j][i] === player) {
+        if (++count === seq)
+          return true;
+      }
+      else
+        break;
+    }
+    for (let i = col + 1, j = row - 1; i <= right && j >= up; i++, j--) {
+      if (this.board[j][i] === player) {
+        if (++count === seq)
+          return true;
+      }
+      else
+        break;
+    }
+
+    return false;
   }
+
 
   /**
    * Checks if there are any moves left to be made
@@ -124,33 +180,6 @@ module.exports = class Board {
    */
   isMovesLeft() {
     return this.movesLeft === 0;
-  }
-
-  /**
-   * Checks if player character exists in array with winSequence number of times
-   *
-   * @param currentArray
-   * @param player
-   * @param winSequence
-   * @return {boolean}
-   */
-  isWinnerInArray(currentArray, player, winSequence) {
-    let consecutiveMoves = 1;
-    let firstIndex = currentArray.indexOf(player) > 0 ? currentArray.indexOf(player) : 1;
-
-    for (let j = firstIndex; j <= this.getBoardSize() - 1; j++) {
-      if (currentArray[j] === player && currentArray[j] === currentArray[j - 1]) {
-        consecutiveMoves++;
-
-        if (consecutiveMoves === winSequence) {
-          return true;
-        }
-      } else {
-        consecutiveMoves = 1;
-      }
-    }
-
-    return false;
   }
 
 };
