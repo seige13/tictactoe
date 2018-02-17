@@ -149,18 +149,44 @@ function userTurn(turn, board) {
         name: 'usersMove',
         message: `Player ${player + 1} (${playerCharacter}) - Please enter your next move (column row) or Q to quit:`,
         validate: function (value) {
-          let regex = RegExp(`^[1-${+BOARD_SIZE}]\\s[1-${+BOARD_SIZE}]|Q`, 'i');
-          let found = regex.test(value);
-          if (!found) {
-            return `Please enter a valid move in the format: 1 ${BOARD_SIZE} or Q to quit`;
-          }
+          let boardLimit = 0;
+          let regex = '';
 
-          if (value.length === 1) {
+          if (value.length === 1 && value.toLowerCase() === 'q') {
             return true;
           }
 
-          if (!board.isValidMove(value.charAt(0) - 1, value.charAt(2) - 1)) {
-            return `Please enter a move that is not already taken`;
+          let userInput = value.split(" ");
+          if (userInput.length === 2) {
+            let row = userInput[0];
+            let col = userInput[1];
+
+            if (BOARD_SIZE >= 100) {
+              regex = RegExp(`^[1-${+BOARD_SIZE}]|[1-${row.charAt(0)}]\\s[1-${+BOARD_SIZE}]|Q`, 'i');
+              row = row - 1;
+              col = col - 1;
+            } else if (BOARD_SIZE >= 10) {
+              row = row - 1;
+              col = col - 1;
+              boardLimit = Math.floor((BOARD_SIZE / 10) % 10);
+              regex = RegExp(`^[1-9]|[1-${boardLimit}]\\s[1-9]|[1-${boardLimit}]|Q`, 'i');
+            } else {
+              regex = RegExp(`^[1-${+BOARD_SIZE}]\\s[1-${+BOARD_SIZE}]|Q`, 'i');
+              row = value.charAt(0) - 1;
+              col = value.charAt(2) - 1;
+            }
+
+            let found = regex.test(value);
+            if (!found) {
+              return `Please enter a valid move in the format: 1 ${BOARD_SIZE} or Q to quit`;
+            }
+
+            if (!board.isValidMove(row, col)) {
+              console.log(row, col);
+              return `Please enter a move that is not already taken`;
+            }
+          } else {
+            return `Please enter a valid move in the format: 1 ${BOARD_SIZE} or Q to quit`;
           }
 
           return true;
@@ -379,7 +405,7 @@ function quitGame(board) {
         }
       ])
       .then(answers => {
-        if (answers.game !== 'quit') {
+        if (answers.quit !== 'quit') {
           saveGame(board);
         } else {
           console.log('Quiting the game. Thanks for playing!');
